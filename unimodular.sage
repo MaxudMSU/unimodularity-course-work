@@ -1,9 +1,8 @@
-import numpy as np
-
 R.<x> = QQ[]
 der = R.derivation()
 
 A.<D> = R['D',der]
+AA = A.fraction_field()
 
 def null_space_vector(M):
     k = kernel(M)
@@ -11,7 +10,6 @@ def null_space_vector(M):
 
 def find_t_index(v, delta, n):
     appr_delta = [-1 if v[i] == 0 else delta[i] for i in range(n)]
-
     return appr_delta.index(max(appr_delta))
 
 def frMat_and_rowRanks(M):
@@ -32,11 +30,9 @@ def rowRed(M):
     U1 = copy(U)
     Us = []
     Us.append(U1)
-#     print(Us)
     frM, rr = frMat_and_rowRanks(L)
 
     while frM.rank() < n:
-#     for i in range(4):
         v = null_space_vector(frM)
         t = find_t_index(v, rr, n)
         L_t_th_row = sum ([ (0 if v[i] == 0 else v[i]*D^(rr[t]-rr[i])) * L[i] for i in range(n)])
@@ -46,17 +42,19 @@ def rowRed(M):
         U1 = copy(U)
         frM, rr = frMat_and_rowRanks(L)
         Us.append(U1)
-#         print(Us)
-#         print(U)
-#         print(L)
-#         print(frM)
-#         print('v: ', v)
-#         print('t: ', t)
-#         print('delta: ',rr)
-#         print('-------')
     return (L, Us, max(rr))
 
-def isUnimodular(M):
+def constructInverse(M):
     Mrr, Us, ordM = rowRed(M)
-    return True if ordM == 0 else False
+    if ordM != 0:
+        return (False, [])
+    else:
+        Mrr_new = Mrr.change_ring(AA)
+        Mrr_1 = ~Mrr_new
+        M_inv = Mrr_1 * Us[-1]
+        return (True, M_inv)
 
+L = matrix([[D^3+x,2*D^2, x^2+x],[D^2, x*D^2, 2*x^2+1],[D, x*D, 1]])
+X = matrix([[x^2/2,-x/2*D+1],[-x*D-3, D^2]])
+Y = matrix([[D^2, x/2*D],[x*D+1,x^2/2]])
+Z = matrix([[1/12, D + 1/3*(2+x^2)],[1/4,3*D+x^2+1]])
